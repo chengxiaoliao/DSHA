@@ -3,6 +3,7 @@ package com.deepseekharness.app.vscreen;
 import com.deepseekharness.app.util.VirtualScreenRoutes;
 import com.deepseekharness.app.util.VirtualScreenHandshake;
 import com.deepseekharness.app.util.HttpProtocol;
+import com.deepseekharness.app.util.PrivilegedScreenRoutes;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -29,9 +30,10 @@ final class VirtualScreenTransport {
       boolean observationRoute =
           route.equals("/vscreen/observation-region")
               || route.equals("/vscreen/observation-release");
-      // 实体屏特权 Core 与虚拟屏共用同一握手/传输，但只接受 /priv/* 的固定动词表。
+      // 启动探针不在业务动词表中，但也必须通过相同的认证传输。
       boolean privilegedRoute =
-          !com.deepseekharness.app.util.PrivilegedScreenRoutes.coreOperation(route).isEmpty();
+          PrivilegedScreenRoutes.corePing(route)
+              || !PrivilegedScreenRoutes.coreOperation(route).isEmpty();
       if ((!route.matches("/vscreen/[a-z]+") && !observationRoute && !privilegedRoute)
           || target.length() > 24_000) throw new IOException("VSCREEN_REQUEST_TARGET_INVALID");
       for (int i = 0; i < target.length(); i++)
